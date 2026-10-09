@@ -274,22 +274,42 @@ const big=v=>{if(v==null||!isFinite(v))return'—';const a=Math.abs(v);return a>
 const fdate=(d,o={day:'numeric',month:'short',year:'numeric'})=>{if(!d)return'—';const x=new Date(String(d).length<=10?d+'T00:00:00':d);return isNaN(x)?String(d):x.toLocaleDateString(JA()?'ja-JP':'en-GB',o)};
 const cssv=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 
-const KEEL='keel';
+/* Which connector serves Keel's market data differs by setup: a claude.ai custom connector named "keel",
+   the same server running locally through the Claude desktop app ("host:keel"), or a connector named "Keel".
+   Try each in turn, remember the one that answers, and keep a log for the banner. */
+const KEEL_CANDS=['keel','host:keel','Keel','Keel API','keel-mcp'];
+const SWITCH=new Set(['server_not_connected','selection_required','server_not_found','not_in_manifest','tool_error','needs_reauth','blocked_by_policy','approval_required','unknown_tool','bad_request']);
+let KEEL=null,KEEL_LOG=[];
+try{const k=localStorage.getItem('legends-keel');if(KEEL_CANDS.includes(k))KEEL=k}catch(e){}
 let MCPREADY=null;
 function mcpReady(){if(!MCPREADY)MCPREADY=(window.claude&&window.claude.use?window.claude.use('mcp'):Promise.resolve(null)).catch(()=>null);return MCPREADY}
 const unwrap=p=>{if(p&&typeof p==='object'&&!Array.isArray(p)&&Object.keys(p).length===1&&p.result&&typeof p.result==='object')return p.result;return p};
-async function keel(tool,input){
-  const m=await mcpReady();if(!m)return{ok:false,code:'no_mcp'};
+async function callOne(m,server,tool,input){
   const opts={cache:{staleTime:300000,gcTime:3600000}};
   for(let attempt=0;attempt<2;attempt++){
-    try{const r=await m.callTool(KEEL,tool,input,opts);let d=unwrap(r.payload);
+    try{const r=await m.callTool(server,tool,input,opts);let d=unwrap(r.payload);
       if(typeof d==='string'){try{d=JSON.parse(d)}catch(e){return{ok:false,code:'tool_error',message:d.slice(0,200)}}}
+      if(d&&typeof d==='object'&&d.error&&!d.rows&&!d.items)return{ok:false,code:'tool_error',message:String(d.error.message||d.error).slice(0,200)};
       return{ok:true,data:d};
     }catch(e){
       if(e&&e.retryable&&attempt===0){await new Promise(ok=>setTimeout(ok,Math.min(e.retryAfterMs||4000+Math.random()*3000,20000)));continue}
       return{ok:false,code:e?.code||'upstream_error',message:e?.message||''};
     }}
   return{ok:false,code:'upstream_error'};
+}
+async function keel(tool,input){
+  const m=await mcpReady();if(!m)return{ok:false,code:'no_mcp'};
+  if(KEEL){const r=await callOne(m,KEEL,tool,input);if(r.ok||!SWITCH.has(r.code))return r;KEEL=null}
+  /* listTools never prompts: try connectors that list this tool first, then the rest */
+  let order=KEEL_CANDS.slice();
+  try{const lt=await m.listTools();const has=new Set((lt.servers||[]).filter(s=>(s.tools||[]).some(x=>x.name===tool)).map(s=>s.server));
+    order.sort((a,b)=>(has.has(b)?1:0)-(has.has(a)?1:0))}catch(e){}
+  let last=null;KEEL_LOG=[];
+  for(const s of order){const r=await callOne(m,s,tool,input);
+    if(r.ok){KEEL=s;try{localStorage.setItem('legends-keel',s)}catch(e){}return r}
+    KEEL_LOG.push(s+': '+r.code);last=r;
+    if(!SWITCH.has(r.code))return r}
+  return last||{ok:false,code:'server_not_connected'};
 }
 function keelMsg(code,message){
   switch(code){
@@ -430,7 +450,7 @@ function factsFor(v){
     recent_headlines:(v.news||[]).slice(0,6).map(n=>n.title)};
 }
 async function loadMarket(sym){
-  const [c,b]=await Promise.all([keel('api_comps',{symbols:sym}),keel('api_brief',{symbols:sym,days:1})]);
+  const c=await keel('api_comps',{symbols:sym});const b=await keel('api_brief',{symbols:sym,days:1});
   let row=c.ok?(c.data.rows||[])[0]:null;
   const bi=b.ok?(b.data.items||[])[0]:null;
   if(!row&&bi&&!bi.error)row=bi;
@@ -535,18 +555,18 @@ function errMsg(code){switch(code){
 let STAT=null;
 function setStatus(state,code,message){
   STAT=[state,code,message];const p=$('#status');p.className='pill '+state;
-  p.innerHTML='<i></i>'+(state==='live'?T('Live · Keel','ライブ · Keel'):state==='busy'?T('Loading…','読み込み中…'):state==='example'?T('Example','サンプル'):T('No market data','市場データなし'));
+  p.innerHTML='<i></i>'+(state==='live'?T('Live · ','ライブ · ')+esc(KEEL||'Keel'):state==='busy'?T('Loading…','読み込み中…'):state==='example'?T('Example','サンプル'):T('No market data','市場データなし'));
   const b=$('#banner');
   if(state==='live'||state==='busy'||state==='example'){b.hidden=true;return}
   b.hidden=false;
   const msg=code==='no_rows'?T(`Keel returned nothing for this ticker. Check the symbol (Tokyo stocks end in .T, crypto like BTC-USD). The panel works from general knowledge only.`,`このティッカーのデータがありません。表記を確認してください（東証は .T、暗号資産は BTC-USD）。パネルは一般知識のみで判断します。`):keelMsg(code,message)+' '+T('The panel works from general knowledge only.','パネルは一般知識のみで判断します。');
-  b.innerHTML=`<span><b>${T('No market data.','市場データなし。')}</b> ${esc(msg)}</span><button class="lnk" id="howBtn" type="button">${T('How to connect','接続方法')}</button>`;
+  b.innerHTML=`<span><b>${T('No market data.','市場データなし。')}</b> ${esc(msg)}${KEEL_LOG.length?`<br><small style="color:var(--mute)">${T('Tried','試行')}: ${esc(KEEL_LOG.join(' · '))}</small>`:''}</span><button class="lnk" id="howBtn" type="button">${T('How to connect','接続方法')}</button>`;
   $('#howBtn').onclick=()=>{const h=$('#how');h.hidden=!h.hidden};
 }
 function howHtml(){return `<b>${T('Connect live data (one time)','ライブデータの接続（初回のみ）')}</b><ol>
-<li>${T('Deploy the Keel repo on Render. It serves <code>keel-mcp</code>.','KeelリポジトリをRenderにデプロイ（<code>keel-mcp</code>）。')}</li>
-<li>${T('In claude.ai, Settings → Connectors → Add custom connector, named <code>keel</code>, URL: the <code>keel-mcp</code> address + <code>/mcp</code>.','claude.aiの設定 → コネクタ → カスタムコネクタを追加。名前<code>keel</code>、URLは<code>keel-mcp</code>のアドレス＋<code>/mcp</code>。')}</li>
-<li>${T('Reload this page and allow Keel and Claude when asked.','このページを再読み込みし、確認が出たらKeelとClaudeを許可します。')}</li></ol>`}
+<li>${T('In claude.ai, open Settings → Connectors and note the exact name of the connector that serves Keel market data (tools <code>api_comps</code>, <code>api_brief</code>). This page looks for <code>keel</code>, <code>Keel</code>, <code>Keel API</code> or <code>keel-mcp</code>, or a local server named <code>keel</code> in the Claude desktop app.','claude.aiの設定 → コネクタで、Keelの市場データ（<code>api_comps</code>、<code>api_brief</code>）を提供するコネクタの正確な名前を確認してください。このページは<code>keel</code>、<code>Keel</code>、<code>Keel API</code>、<code>keel-mcp</code>、またはデスクトップアプリのローカルサーバー<code>keel</code>を探します。')}</li>
+<li>${T('If it is not there, add a custom connector named <code>keel</code> with the URL of the Keel service on Render + <code>/mcp</code>.','見つからない場合は、名前<code>keel</code>、URLはRenderのKeelサービスのアドレス＋<code>/mcp</code>でカスタムコネクタを追加します。')}</li>
+<li>${T('Reload this page, run a ticker, and allow Keel and Claude when asked. If a choice of connectors appears, pick the market-data one.','再読み込みしてティッカーを実行し、確認が出たらKeelとClaudeを許可します。コネクタの選択が出たら市場データの方を選んでください。')}</li></ol>`}
 
 function renderIdent(){
   const v=VIEW,r=v.row||{};
