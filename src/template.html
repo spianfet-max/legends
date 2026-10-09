@@ -1,0 +1,693 @@
+<title>Legends</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500&display=swap">
+<style>
+/* House style shared with Meeting Brief, Frontier, Parity and Cadence: report page on white, black hairline rules, red brand rule, Frutiger stack.
+   Layout: ticker bar → market snapshot → the panel's consensus strip → one card per investor. */
+:root{
+  --bg:#FFFFFF; --card:#FFFFFF; --ink:#000000; --mute:#6B6B6B; --line:#D8D8D8; --track:#ECECEC; --rule:#000000;
+  --red:#E60000; --steel:#3E5C76; --gold:#8A7015; --pos:#1E7B45; --neg:#C0262D; --sel:rgba(0,0,0,.045);
+  --a1:#3E5C76; --a2:#E60000; --a3:#8A7015; --a4:#262626; --a5:#93A9BC; --a6:#B4532A; --a7:#2E8A86; --a8:#5B4FA0;
+  --tint:rgba(62,92,118,.08); --warn:#9A6A00; --warnbg:rgba(199,160,17,.12);
+  --font:'Frutiger','Frutiger LT Std','Source Sans 3','Hiragino Kaku Gothic ProN','Noto Sans JP',system-ui,-apple-system,sans-serif;
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101112; --card:#19191B; --ink:#EEEEEC; --mute:#8F9297; --line:#2C2D30; --track:#2A2B2E; --rule:#EEEEEC;
+  --red:#F03838; --steel:#7FA3C2; --gold:#D9B53A; --pos:#4CC27E; --neg:#F06A6A; --sel:rgba(255,255,255,.06);
+  --a1:#7FA3C2; --a2:#F03838; --a3:#D9B53A; --a4:#E4E4E2; --a5:#4F6880; --a6:#E8875A; --a7:#5CC4BE; --a8:#9F94E6;
+  --tint:rgba(127,163,194,.12); --warn:#E5C15A; --warnbg:rgba(217,181,58,.12); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101112; --card:#19191B; --ink:#EEEEEC; --mute:#8F9297; --line:#2C2D30; --track:#2A2B2E; --rule:#EEEEEC;
+  --red:#F03838; --steel:#7FA3C2; --gold:#D9B53A; --pos:#4CC27E; --neg:#F06A6A; --sel:rgba(255,255,255,.06);
+  --a1:#7FA3C2; --a2:#F03838; --a3:#D9B53A; --a4:#E4E4E2; --a5:#4F6880; --a6:#E8875A; --a7:#5CC4BE; --a8:#9F94E6;
+  --tint:rgba(127,163,194,.12); --warn:#E5C15A; --warnbg:rgba(217,181,58,.12); color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+.app{overflow-x:clip}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;font-weight:300;-webkit-font-smoothing:antialiased;margin:0}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.app{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:24px 56px}
+@media (max-width:480px){.app{padding-inline:16px}}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-bottom:16px;border-bottom:1px solid var(--rule)}
+.brand{padding-left:12px;border-left:2px solid var(--red);display:flex;flex-direction:column;gap:3px;min-width:0}
+.brand h1{margin:0;font-size:26px;font-weight:300;letter-spacing:-.01em;line-height:1.1}
+.brand span{color:var(--mute);font-size:13px;max-width:62ch;text-wrap:balance}
+.tright{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.lbl{font-size:12px;color:var(--mute);letter-spacing:.02em}
+.seg{display:inline-flex;flex-wrap:wrap;max-width:100%;border:1px solid var(--line);background:var(--card)}
+.seg button{border:0;background:transparent;min-height:32px;padding:0 11px;color:var(--mute);white-space:nowrap}
+.seg button.on{background:var(--ink);color:var(--bg)}
+.btn{border:1px solid var(--ink);background:var(--card);min-height:34px;padding:0 14px;font-weight:400}
+.btn.p{background:var(--ink);color:var(--bg)}
+.btn.q{border-color:var(--line);color:var(--mute)}
+.btn:disabled{opacity:.45;cursor:default}
+.lnk{border:0;background:none;padding:0;color:var(--steel);text-decoration:underline;text-underline-offset:2px;font-size:12.5px}
+a.lnk{display:inline}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 9px;border:1px solid var(--line);white-space:nowrap}
+.pill i{width:7px;height:7px;border-radius:50%;background:var(--mute)}
+.pill.live i{background:var(--pos)} .pill.sample i{background:var(--gold)} .pill.err i{background:var(--neg)} .pill.busy i{background:var(--steel);animation:pulse 1s infinite alternate}
+@keyframes pulse{to{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.pill.busy i,.st.run i{animation:none}}
+.bar{display:flex;gap:10px 22px;flex-wrap:wrap;align-items:center;padding-block:12px;border-bottom:1px solid var(--line)}
+.grp{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0}
+.sec{padding-block:22px;border-bottom:1px solid var(--line)}
+.two{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:28px}
+@media (max-width:860px){.two{grid-template-columns:minmax(0,1fr)}}
+.sh{display:flex;flex-direction:column;gap:3px;margin-bottom:12px}
+.sh h2{margin:0;font-size:17px;font-weight:400;text-wrap:balance}
+.sh p{margin:0;color:var(--mute);font-size:12.5px;max-width:70ch;line-height:1.45}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0;border-bottom:1px solid var(--line)}
+.kpi{padding:16px 16px 14px 0;display:flex;flex-direction:column;gap:4px;min-width:0}
+.kpi+.kpi{padding-left:16px;border-left:1px solid var(--line)}
+@media (max-width:520px){.kpi+.kpi{border-left:0;padding-left:0}.kpis{grid-template-columns:1fr 1fr}}
+.kpi .v{font-size:26px;font-weight:300;font-variant-numeric:tabular-nums;line-height:1.1;white-space:nowrap}
+.kpi .v small{font-size:13px;color:var(--mute);margin-left:3px}
+.kpi .s{font-size:12px;color:var(--mute);line-height:1.35}
+.up{color:var(--pos)} .dn{color:var(--neg)}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+td{padding:7px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+td:first-child{text-align:left;padding-left:0;color:var(--mute)}
+svg.ch{display:block;width:100%;user-select:none;overflow:visible}
+svg.ch text{fill:var(--mute);font-size:11px;font-family:var(--font)}
+svg.ch .grd{stroke:var(--line);stroke-width:1}
+svg.ch .ax{stroke:var(--rule);stroke-width:1}
+.leg{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12px;color:var(--mute);margin-top:8px}
+.leg span{display:inline-flex;align-items:center;gap:6px}
+.leg i{display:inline-block;width:14px;height:2px}
+.leg i.d{border-top:2px dashed;height:0;background:none!important}
+.note{color:var(--mute);font-size:12px;line-height:1.55;max-width:90ch;margin:10px 0 0}
+.banner{display:flex;gap:10px 16px;align-items:center;flex-wrap:wrap;padding:10px 12px;margin-top:14px;background:var(--warnbg);font-size:13px;line-height:1.45}
+.banner b{font-weight:500}
+#tip{position:fixed;pointer-events:none;background:var(--card);border:1px solid var(--rule);padding:7px 9px;font-size:12px;line-height:1.45;z-index:20;max-width:280px;font-variant-numeric:tabular-nums;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+#tip .m{color:var(--mute)}
+.help{border:1px solid var(--line);padding:14px 16px;margin-top:14px;font-size:13px;line-height:1.55;background:var(--card)}
+.help ol{margin:6px 0 0;padding-left:20px}
+.help code{font-family:var(--mono);font-size:12px;background:var(--track);padding:1px 4px;word-break:break-all}
+input[type=text]{border:1px solid var(--line);background:var(--card);min-height:34px;padding:0 9px}
+.empty{color:var(--mute);font-size:13px;padding:14px 0}
+.rng{position:relative;width:90px;height:14px;display:inline-block;vertical-align:middle}
+.rng::before{content:"";position:absolute;left:0;right:0;top:6px;height:2px;background:var(--track)}
+.rng b{position:absolute;top:2px;width:2px;height:10px;background:var(--ink)}
+.nw{display:flex;flex-direction:column;gap:2px;padding:8px 0;border-bottom:1px solid var(--line)}
+.nw a,.nw span.t{color:var(--ink);text-decoration:none;font-size:13.5px;line-height:1.4}
+.nw a:hover{text-decoration:underline}
+.nw small{color:var(--mute);font-size:12px}
+
+/* ===== Legends ===== */
+#tick{width:150px;font-family:var(--mono);font-size:15px;text-transform:uppercase;letter-spacing:.02em}
+.quick{display:flex;gap:6px;flex-wrap:wrap}
+.quick button{border:1px solid var(--line);background:var(--card);min-height:28px;padding:0 9px;font-family:var(--mono);font-size:12px;color:var(--mute)}
+.quick button:hover{color:var(--ink);border-color:var(--ink)}
+.selline{font-size:12.5px;color:var(--mute);line-height:1.5;min-width:0}
+.selline b{color:var(--ink);font-weight:400}
+/* investor picker */
+.picker{border:1px solid var(--line);background:var(--card);padding:14px 16px;margin-top:12px}
+.picker .ph{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline;margin-bottom:10px}
+.pcols{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px 24px}
+.pcat h3{margin:0 0 4px;font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.pcat label{display:flex;gap:8px;align-items:baseline;padding:3px 0;font-size:13px;cursor:pointer;line-height:1.35}
+.pcat label input{accent-color:var(--ink);margin:0;flex:none;transform:translateY(1px)}
+.pcat label small{color:var(--mute);font-size:11.5px;display:block}
+.pcat label.dis{opacity:.45;cursor:default}
+
+/* name line above snapshot */
+.ident{display:flex;align-items:baseline;gap:6px 14px;flex-wrap:wrap;padding-block:18px 2px}
+.ident h2{margin:0;font-size:24px;font-weight:300;letter-spacing:-.01em}
+.ident .sym{font-family:var(--mono);font-size:13px;border:1px solid var(--rule);padding:1px 6px}
+.ident .m{color:var(--mute);font-size:12.5px}
+.ex{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--warn);border:1px solid currentColor;padding:1px 6px}
+
+/* consensus */
+.tally{display:flex;height:10px;background:var(--track);margin:6px 0 8px;overflow:hidden}
+.tally i{display:block;height:100%}
+.tleg{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:12.5px;color:var(--mute)}
+.tleg b{color:var(--ink);font-weight:400;font-variant-numeric:tabular-nums}
+.sw{display:inline-block;width:9px;height:9px;margin-right:6px;vertical-align:0}
+.bull{background:var(--pos)} .neut{background:var(--gold)} .bear{background:var(--neg)} .oos{background:var(--mute)}
+.consrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:28px;align-items:start}
+@media (max-width:860px){.consrow{grid-template-columns:minmax(0,1fr)}}
+.big{font-size:40px;font-weight:300;line-height:1;font-variant-numeric:tabular-nums}
+.big small{font-size:14px;color:var(--mute);margin-left:4px}
+.runbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.prog{font-size:12.5px;color:var(--mute);font-variant-numeric:tabular-nums}
+
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:0 28px}
+@media (max-width:420px){.cards{grid-template-columns:minmax(0,1fr)}}
+.card{border-top:1px solid var(--rule);padding:14px 0 18px;display:flex;flex-direction:column;gap:9px;min-width:0}
+.ch1{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.ch1 .who{min-width:0}
+.ch1 h3{margin:0;font-size:17px;font-weight:400;line-height:1.2}
+.ch1 .mdl{font-size:12px;color:var(--mute);line-height:1.35;margin-top:2px}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 9px;border:1px solid var(--line);white-space:nowrap;flex:none}
+.st i{width:7px;height:7px;border-radius:50%;background:var(--mute)}
+.st.bullish i{background:var(--pos)} .st.neutral i{background:var(--gold)} .st.bearish i{background:var(--neg)}
+.st.run i{background:var(--steel);animation:pulse 1s infinite alternate}
+.st.bullish{border-color:var(--pos)} .st.bearish{border-color:var(--neg)}
+.verd{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.verd .nv{font-size:22px;font-weight:300;line-height:1.15}
+.verd .cf{font-size:12px;color:var(--mute)}
+.fit{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;font-size:12px;color:var(--mute)}
+.fit .tr{height:4px;background:var(--track);position:relative}
+.fit .tr b{position:absolute;left:0;top:0;bottom:0;background:var(--ink)}
+.fit .n{font-variant-numeric:tabular-nums;color:var(--ink);min-width:2.5ch;text-align:right}
+.thesis{font-size:14.5px;line-height:1.5;margin:0;max-width:62ch}
+.act{font-size:13px;line-height:1.5;margin:0;padding-left:12px;border-left:2px solid var(--line);color:var(--ink)}
+.card details{border-top:1px solid var(--line);padding-top:8px}
+.card summary{cursor:pointer;font-size:12.5px;color:var(--steel);list-style:none}
+.card summary::-webkit-details-marker{display:none}
+.card summary::before{content:"+ ";font-family:var(--mono)}
+.card details[open] summary::before{content:"− "}
+.crit{display:grid;grid-template-columns:18px minmax(0,1fr);gap:2px 8px;font-size:13px;line-height:1.4;padding:5px 0;border-bottom:1px solid var(--line)}
+.crit .g{font-family:var(--mono);font-size:12px;text-align:center}
+.crit .g.pass{color:var(--pos)} .crit .g.fail{color:var(--neg)} .crit .g.unclear{color:var(--mute)}
+.crit small{grid-column:2;color:var(--mute);font-size:12px}
+.lst h4{margin:12px 0 4px;font-size:11.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.lst ul{margin:0;padding-left:16px;font-size:13px;line-height:1.5}
+.cfoot{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.wait{color:var(--mute);font-size:13px;line-height:1.5}
+.err{color:var(--neg);font-size:13px;line-height:1.5}
+.copied{color:var(--pos);font-size:12px}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand"><h1>Legends</h1><span data-ja="伝説の投資家たちの判断基準で、1つの銘柄を同時に検証">One ticker, read through the playbooks of the great investors</span></div>
+    <div class="tright">
+      <span class="pill busy" id="status"><i></i></span>
+      <button class="btn q" id="themeBtn">Dark</button>
+      <div class="seg" id="langSeg"><button data-l="en">EN</button><button data-l="ja">日本語</button></div>
+    </div>
+  </header>
+  <div class="banner" id="banner" hidden></div>
+  <div class="help" id="how" hidden></div>
+
+  <form class="bar" id="tf">
+    <div class="grp">
+      <input type="text" id="tick" placeholder="AAPL, 7974.T" aria-label="Ticker" autocomplete="off" spellcheck="false">
+      <button class="btn p" id="go" type="submit" data-ja="分析">Analyse</button>
+      <button class="btn q" id="stop" type="button" hidden data-ja="停止">Stop</button>
+    </div>
+    <div class="quick" id="quick"></div>
+  </form>
+  <div class="bar">
+    <div class="grp"><span class="lbl" data-ja="パネル">Panel</span><div class="seg" id="panels"></div></div>
+    <div class="grp" style="flex:1 1 260px"><span class="selline" id="selline"></span> <button class="lnk" id="pickBtn" type="button"></button></div>
+  </div>
+  <div class="picker" id="picker" hidden></div>
+
+  <div class="ident" id="ident"></div>
+  <div class="kpis" id="kpis"></div>
+
+  <section class="sec two">
+    <div style="min-width:0">
+      <div class="sh"><h2 data-ja="1年の値動き">One year of price</h2><p data-ja="50日・200日移動平均つき。トレンド系の投資家はここを最初に見ます。">With 50- and 200-day averages, the first thing the trend followers look at.</p></div>
+      <svg class="ch" id="px" height="250"></svg>
+      <div class="leg" id="pxLeg"></div>
+    </div>
+    <div style="min-width:0">
+      <div class="sh"><h2 data-ja="ファンダメンタルズ">Fundamentals</h2><p id="fundSub"></p></div>
+      <table id="fund"></table>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="consrow">
+      <div style="min-width:0">
+        <div class="sh"><h2 data-ja="パネルの見解">The panel's view</h2><p data-ja="各投資家の基準への適合度（0–100）。目標株価ではありません。">How well the stock fits each investor's own criteria, 0–100. Not a price target.</p></div>
+        <div class="big" id="avg"></div>
+        <div class="tally" id="tally"></div>
+        <div class="tleg" id="tleg"></div>
+        <div class="runbar">
+          <button class="btn q" id="copy" type="button" data-ja="テキストをコピー">Copy as text</button><span id="copied" class="copied" hidden></span>
+          <span class="prog" id="prog"></span>
+        </div>
+      </div>
+      <div style="min-width:0">
+        <svg class="ch" id="strip" height="150"></svg>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" style="border-bottom:0;padding-top:4px">
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section class="sec" style="border-top:1px solid var(--line)">
+    <div class="two">
+      <div style="min-width:0">
+        <div class="sh"><h2 data-ja="ニュース">In the news</h2><p data-ja="この銘柄の最新見出し（分析にも渡されます）。">Latest headlines for this ticker. The panel sees them too.</p></div>
+        <div id="news"></div>
+      </div>
+      <div style="min-width:0">
+        <div class="sh"><h2 data-ja="仕組み">How it works</h2></div>
+        <p class="note" style="margin-top:0" id="howtxt"></p>
+      </div>
+    </div>
+  </section>
+  <p class="note" data-ja="教育目的の分析であり、投資助言ではありません。各投資家本人の見解ではなく、公開された投資手法を当てはめたものです。データは無料の公開ソースで遅延・誤りの可能性があります。">Educational analysis, not investment advice. These are documented methods applied by Claude, not the investors' own opinions. Data comes from free public sources and can be delayed or wrong.</p>
+</div>
+
+<script type="application/json" id="skills">__SKILLS__</script>
+<script>
+/* ===== Shared core (same as Meeting Brief): language, formatting, Keel connection, tooltip, charts ===== */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let THEME='light';try{const t=localStorage.getItem('keel-theme');if(t==='dark'||t==='light')THEME=t}catch(e){}
+document.documentElement.dataset.theme=THEME;
+let LANG='en';try{const l=localStorage.getItem('keel-lang');if(l==='ja'||l==='en')LANG=l}catch(e){}
+const JA=()=>LANG==='ja', T=(en,ja)=>JA()?ja:en;
+function bindTheme(){const b=$('#themeBtn');const lab=()=>{b.textContent=THEME==='light'?T('Dark','ダーク'):T('Light','ライト')};lab();
+  b.onclick=()=>{THEME=THEME==='light'?'dark':'light';document.documentElement.dataset.theme=THEME;try{localStorage.setItem('keel-theme',THEME)}catch(e){}lab();renderAll()};bindTheme.lab=lab}
+function setLang(l){LANG=l;try{localStorage.setItem('keel-lang',l)}catch(e){}document.documentElement.lang=l;
+  $$('[data-ja]').forEach(e=>{if(e.dataset.en==null)e.dataset.en=e.innerHTML;e.innerHTML=JA()?e.dataset.ja:e.dataset.en});
+  $$('#langSeg button').forEach(b=>b.classList.toggle('on',b.dataset.l===l));if(bindTheme.lab)bindTheme.lab()}
+const num=(v,d=2)=>v==null||!isFinite(v)?'—':Number(v).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const pct=(v,d=1,sign=true)=>v==null||!isFinite(v)?'—':(sign&&v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(d)+'%';
+const cls=v=>v==null?'':v>0?'up':v<0?'dn':'';
+const px=v=>{if(v==null||!isFinite(v))return'—';const a=Math.abs(v);return num(v,a>=1000?0:a>=100?1:a>=10?2:3)};
+const big=v=>{if(v==null||!isFinite(v))return'—';const a=Math.abs(v);return a>=1e12?(v/1e12).toFixed(2)+'T':a>=1e9?(v/1e9).toFixed(1)+'B':a>=1e6?(v/1e6).toFixed(0)+'M':num(v,0)};
+const fdate=(d,o={day:'numeric',month:'short',year:'numeric'})=>{if(!d)return'—';const x=new Date(String(d).length<=10?d+'T00:00:00':d);return isNaN(x)?String(d):x.toLocaleDateString(JA()?'ja-JP':'en-GB',o)};
+const cssv=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+const KEEL='keel';
+let MCPREADY=null;
+function mcpReady(){if(!MCPREADY)MCPREADY=(window.claude&&window.claude.use?window.claude.use('mcp'):Promise.resolve(null)).catch(()=>null);return MCPREADY}
+const unwrap=p=>{if(p&&typeof p==='object'&&!Array.isArray(p)&&Object.keys(p).length===1&&p.result&&typeof p.result==='object')return p.result;return p};
+async function keel(tool,input){
+  const m=await mcpReady();if(!m)return{ok:false,code:'no_mcp'};
+  const opts={cache:{staleTime:300000,gcTime:3600000}};
+  for(let attempt=0;attempt<2;attempt++){
+    try{const r=await m.callTool(KEEL,tool,input,opts);let d=unwrap(r.payload);
+      if(typeof d==='string'){try{d=JSON.parse(d)}catch(e){return{ok:false,code:'tool_error',message:d.slice(0,200)}}}
+      return{ok:true,data:d};
+    }catch(e){
+      if(e&&e.retryable&&attempt===0){await new Promise(ok=>setTimeout(ok,Math.min(e.retryAfterMs||4000+Math.random()*3000,20000)));continue}
+      return{ok:false,code:e?.code||'upstream_error',message:e?.message||''};
+    }}
+  return{ok:false,code:'upstream_error'};
+}
+function keelMsg(code,message){
+  switch(code){
+    case 'no_mcp':case 'not_granted':case 'capability_disabled':case 'capability_removed':
+      return T('Live data runs inside claude.ai.','ライブデータはclaude.ai内で動作します。');
+    case 'server_not_connected':case 'selection_required':case 'server_not_found':
+      return T('Add the Keel connector in claude.ai Settings → Connectors, then reload.','claude.aiの設定 → コネクタでKeelを追加し、再読み込みしてください。');
+    case 'needs_reauth':return T('Reconnect Keel in claude.ai Settings → Connectors.','claude.aiの設定 → コネクタでKeelを再接続してください。');
+    case 'not_in_manifest':return T('Keel is not allowed for this page. Allow it from the page’s Permissions menu.','このページではKeelが許可されていません。ページの権限メニューから許可してください。');
+    case 'blocked_by_policy':case 'approval_required':return T('Your organisation’s policy blocks Keel here.','組織のポリシーによりKeelは使用できません。');
+    case 'server_unavailable':return T('Keel did not answer. The free server may be waking up; try again in a minute.','Keelが応答しません。無料サーバーの起動中の可能性があります。1分後に再度お試しください。');
+    case 'tool_error':return T('Keel reported an error: ','Keelのエラー：')+(message||'');
+    default:return T('Live data unavailable','ライブデータを取得できません')+(message?': '+message:'.');
+  }
+}
+let TIP=null;
+function tip(html,ev){if(!TIP){TIP=document.createElement('div');TIP.id='tip';document.body.appendChild(TIP)}
+  if(html==null){TIP.hidden=true;return}TIP.hidden=false;TIP.innerHTML=html;
+  const r=TIP.getBoundingClientRect(),W=innerWidth,H=innerHeight;let x=ev.clientX+14,y=ev.clientY+14;
+  if(x+r.width>W-8)x=ev.clientX-r.width-14;if(y+r.height>H-8)y=ev.clientY-r.height-14;TIP.style.left=Math.max(8,x)+'px';TIP.style.top=Math.max(8,y)+'px'}
+function niceTicks(lo,hi,n=5){if(!(hi>lo)){hi=lo+1}const raw=(hi-lo)/n,p=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/p,st=(f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p;
+  const a=Math.floor(lo/st)*st,b=Math.ceil(hi/st)*st,t=[];for(let v=a;v<=b+st*1e-9;v+=st)t.push(+v.toFixed(10));return t}
+const Wd=el=>Math.max(260,el.clientWidth||el.parentNode.clientWidth||600);
+function lineChart(svg,series,o={}){
+  const w=Wd(svg),h=o.h||250,m={l:o.ml||46,r:14,t:12,b:26};
+  const all=series.flatMap(s=>s.pts).filter(p=>p.y!=null&&isFinite(p.y));
+  if(!all.length){svg.setAttribute('viewBox',`0 0 ${w} ${h}`);svg.innerHTML=`<text x="${w/2}" y="${h/2}" text-anchor="middle">${T('No price history','価格データなし')}</text>`;return}
+  const xs=all.map(p=>+p.x),x0=Math.min(...xs),x1=Math.max(...xs);
+  let y0=Math.min(...all.map(p=>p.y)),y1=Math.max(...all.map(p=>p.y));
+  const pad=(y1-y0)*.06||1;const yt=niceTicks(y0-pad,y1+pad,5);y0=yt[0];y1=yt[yt.length-1];
+  const X=v=>m.l+(x1>x0?(v-x0)/(x1-x0):.5)*(w-m.l-m.r),Y=v=>m.t+(1-(v-y0)/(y1-y0))*(h-m.t-m.b);
+  const yf=o.yFmt||(v=>px(v));
+  let g='';
+  yt.forEach(v=>g+=`<line class="grd" x1="${m.l}" x2="${w-m.r}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${m.l-6}" y="${Y(v)+4}" text-anchor="end">${yf(v)}</text>`);
+  const ticks=[];let d=new Date(x0);d=new Date(d.getFullYear(),d.getMonth()+1,1);while(+d<=x1){ticks.push(+d);d=new Date(d.getFullYear(),d.getMonth()+1,1)}
+  const maxT=Math.max(2,Math.floor((w-m.l-m.r)/64)),every=Math.ceil(ticks.length/maxT);
+  ticks.forEach((t,i)=>{if(i%every)return;const dd=new Date(t);const lab=dd.getMonth()===0?String(dd.getFullYear()):dd.toLocaleDateString(JA()?'ja-JP':'en-GB',{month:'short'});
+    g+=`<line class="grd" x1="${X(t)}" x2="${X(t)}" y1="${h-m.b}" y2="${h-m.b+4}"/><text x="${X(t)}" y="${h-8}" text-anchor="middle">${lab}</text>`});
+  g+=`<line class="ax" x1="${m.l}" x2="${w-m.r}" y1="${h-m.b}" y2="${h-m.b}"/>`;
+  series.forEach(s=>{const pts=s.pts.filter(p=>p.y!=null&&isFinite(p.y));if(!pts.length)return;
+    const dd=pts.map((p,i)=>(i?'L':'M')+X(+p.x).toFixed(1)+' '+Y(p.y).toFixed(1)).join('');
+    if(s.area)g+=`<path d="${dd}L${X(+pts[pts.length-1].x).toFixed(1)} ${Y(y0)}L${X(+pts[0].x).toFixed(1)} ${Y(y0)}Z" fill="${s.color}" fill-opacity=".07" stroke="none"/>`;
+    g+=`<path d="${dd}" fill="none" stroke="${s.color}" stroke-width="${s.width||1.6}" ${s.dash?'stroke-dasharray="5 4"':''} stroke-linejoin="round" stroke-linecap="round"/>`;
+    const L=pts[pts.length-1];if(s.end)g+=`<circle cx="${X(+L.x)}" cy="${Y(L.y)}" r="3" fill="${s.color}"/>`;
+  });
+  g+=`<line id="${svg.id}-hv" class="ax" x1="0" x2="0" y1="${m.t}" y2="${h-m.b}" visibility="hidden"/><rect x="${m.l}" y="${m.t}" width="${w-m.l-m.r}" height="${h-m.t-m.b}" fill="transparent" class="hit"/>`;
+  svg.setAttribute('viewBox',`0 0 ${w} ${h}`);svg.setAttribute('height',h);svg.innerHTML=g;
+  const hit=svg.querySelector('.hit'),hv=svg.querySelector(`[id="${svg.id}-hv"]`);
+  const xsAll=[...new Set(series[0].pts.map(p=>+p.x))].sort((a,b)=>a-b);
+  hit.addEventListener('mousemove',ev=>{const r=svg.getBoundingClientRect(),vx=(ev.clientX-r.left)/r.width*w;
+    const xv=x0+(vx-m.l)/(w-m.l-m.r)*(x1-x0);let best=xsAll[0];for(const v of xsAll)if(Math.abs(v-xv)<Math.abs(best-xv))best=v;
+    hv.setAttribute('x1',X(best));hv.setAttribute('x2',X(best));hv.setAttribute('visibility','visible');
+    const rows=series.map(s=>{const p=s.pts.find(q=>+q.x===best);return p&&p.y!=null?`<div><span style="color:${s.color}">■</span> ${esc(s.name)} <b>${yf(p.y)}</b></div>`:''}).join('');
+    tip(`<div class="m">${fdate(new Date(best).toISOString().slice(0,10))}</div>${rows}`,ev)});
+  hit.addEventListener('mouseleave',()=>{hv.setAttribute('visibility','hidden');tip(null)});
+}
+function legend(el,series){el.innerHTML=series.map(s=>`<span><i class="${s.dash?'d':''}" style="background:${s.color};border-color:${s.color}"></i>${esc(s.name)}</span>`).join('')}
+
+/* ===== Investor skills (questflowai/investorskills, MIT) ===== */
+const SK=JSON.parse($('#skills').textContent);
+const BY=Object.fromEntries(SK.map(s=>[s.slug,s]));
+const CATS=[
+ {k:'value',en:'Value & quality',ja:'バリュー・クオリティ'},{k:'growth',en:'Growth & venture',ja:'グロース・ベンチャー'},
+ {k:'trend',en:'Trend & momentum',ja:'トレンド・モメンタム'},{k:'macro',en:'Macro & cycles',ja:'マクロ・サイクル'},
+ {k:'activist',en:'Activist & special situations',ja:'アクティビスト・特殊状況'},{k:'short',en:'Forensic shorts',ja:'フォレンジック・ショート'},
+ {k:'crypto',en:'Crypto',ja:'暗号資産'},{k:'other',en:'Other',ja:'その他'}];
+const PANELS=[
+ {k:'classic',en:'Classic',ja:'定番',s:['buffett','munger','lynch-growth','klarman-deep-value','marks-cycles','druckenmiller','livermore','burry-asymmetric-contrarian']},
+ {k:'value',en:'Value',ja:'バリュー',s:['buffett','munger','graham-net-net','klarman-deep-value','li-lu-value','hohn-concentrated-quality','nick-sleep-scale-economies','templeton-max-pessimism']},
+ {k:'growth',en:'Growth',ja:'グロース',s:['lynch-growth','oneil-canslim','coleman-tiger-growth','cathie-wood-innovation','serenity','nick-sleep-scale-economies']},
+ {k:'trend',en:'Trend',ja:'トレンド',s:['livermore','darvas-box','minervini-vcp','seykota-systematic-trend','turtle-trading','ptj-macro-trend']},
+ {k:'macro',en:'Macro',ja:'マクロ',s:['soros-reflexivity','druckenmiller','marks-cycles','dalio-principles-allweather','ptj-macro-trend','tepper-distressed-macro']},
+ {k:'skeptic',en:'Skeptics',ja:'懐疑派',s:['burry-asymmetric-contrarian','einhorn-forensic-short','muddy-waters-forensic','hindenburg-investigation','spruce-point-accounting-short','marks-cycles']},
+ {k:'asia',en:'Asia',ja:'アジア',s:['duanyongping-benfen-value','qiuguolu-value-quality','fengliu-reverse-weakhand','danbin-longterm-compounder','zhanglei-longterm-research-value','dengxiaofeng-cycle-industry','libei-macro-hedge']},
+ {k:'crypto',en:'Crypto',ja:'暗号資産',s:['ansem-crypto','arthur-hayes-liquidity','willy-woo-onchain','cobie-cycle-filter','hsaka-crypto-ta','delphi-thematic-crypto','multicoin-thesis-vc']}];
+const MAXSEL=10;
+const QUICK=['AAPL','NVDA','7974.T','7203.T','9697.T','BTC-USD'];
+const shortName=s=>{const i=s.investor.split('/')[0].trim();return i};
+const ghUrl=slug=>'https://github.com/questflowai/investorskills/tree/main/skills/'+slug;
+
+/* ===== State ===== */
+let S={ticker:'',panel:'classic',sel:PANELS[0].s.slice()};
+try{const j=JSON.parse(localStorage.getItem('legends')||'null');if(j&&Array.isArray(j.sel))S={...S,...j,sel:j.sel.filter(x=>BY[x]).slice(0,MAXSEL)}}catch(e){}
+const save=()=>{try{localStorage.setItem('legends',JSON.stringify(S))}catch(e){}};
+/* VIEW = what is on screen: {example, sym, row, news, events, facts, results:{slug:{state,data,err}}, order:[slugs], lang} */
+let VIEW=null, RUN=null, SAMPLE=null, SAMPLEREADY=null, LIVE=null;
+function sampleReady(){if(!SAMPLEREADY)SAMPLEREADY=(window.claude&&window.claude.use?window.claude.use('sample'):Promise.resolve(null)).then(s=>(SAMPLE=s)).catch(()=>null);return SAMPLEREADY}
+
+/* ===== Example (synthetic, shown before the first run) ===== */
+function exampleView(){
+  let seed=7;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
+  const spark=[];let v=82;const start=new Date();start.setFullYear(start.getFullYear()-1);
+  for(let i=0;i<252;i++){v*=1+(rnd()-.47)*.03;const d=new Date(+start+i*1.45*864e5);spark.push({d:d.toISOString().slice(0,10),v:+v.toFixed(2)})}
+  const last=spark[spark.length-1].v,vals=spark.map(p=>p.v);
+  const row={symbol:'EXAMPLE',name:T('Example Industries','サンプル工業'),currency:'USD',last,asof:spark[spark.length-1].d,market_cap:42e9,pe:18.4,fwd_pe:16.2,ev_ebitda:11.3,op_margin:.21,rev_growth:.09,roe:.24,div_yield:1.4,
+    chg_1d:.4,chg_1w:1.1,chg_1m:3.2,chg_3m:6.8,chg_ytd:9.5,chg_1y:(last/spark[0].v-1)*100,vol_20d:22.1,vol_60d:24.0,vol_1y:25.3,high_52w:Math.max(...vals),low_52w:Math.min(...vals),pos_52w:(last-Math.min(...vals))/(Math.max(...vals)-Math.min(...vals))*100,max_dd_1y:-17.9,spark};
+  const R=(nv,st,fit,cf,thE,thJ,crit,likes,conc,inv,miss,acE,acJ)=>({state:'done',data:{native_verdict:nv,stance:st,fit,confidence:cf,thesis:JA()?thJ:thE,criteria:crit,likes,concerns:conc,invalidation:inv,missing:miss,action:JA()?acJ:acE}});
+  const results={
+    'buffett':R('Watchlist','neutral',64,'medium','A decent business at a fair price, but not the discount Buffett would wait for.','良い事業だが適正価格。バフェットが待つ割安水準ではない。',
+      [{name:'Returns on capital',status:'pass',note:'ROE 24%'},{name:'Margin of safety',status:'fail',note:'Fwd P/E 16 leaves little room'},{name:'Owner earnings',status:'unclear',note:'No cash-flow statement provided'}],
+      ['High ROE','Steady growth'],['Price near fair value'],['ROE falls below 15%'],['Free cash flow','Debt schedule'],'Keep on the watchlist; buy on a 25–30% pullback.','ウォッチリストに入れ、25〜30%の下落で買い。'),
+    'lynch-growth':R('Stalwart, fairly priced','neutral',58,'medium','A stalwart growing about 9% a year on 16x forward earnings, so the PEG is near 1.8.','年9%成長の安定成長株で予想PER16倍、PEGは約1.8。',
+      [{name:'PEG below 1',status:'fail',note:'PEG ≈ 1.8'},{name:'Understandable story',status:'pass',note:'Example'}],['Consistent growth'],['PEG too high for a buy'],['Growth slows below 5%'],['Segment data'],'Hold if owned; not a fresh buy at this PEG.','保有なら継続、このPEGでは新規買いはしない。'),
+    'livermore':R('Trend intact','bullish',71,'medium','Price is above a rising 200-day line and close to its yearly high, the line of least resistance points up.','上昇する200日線の上にあり年初来高値圏。最小抵抗線は上向き。',
+      [{name:'Above 200-day average',status:'pass',note:'Yes'},{name:'Breakout on volume',status:'unclear',note:'No volume data'}],['Higher highs'],['Late-stage extension'],['Close below the 50-day line'],['Volume'],'Buy a probe position on a new high; add only if it follows through.','高値更新で打診買い、追随すれば買い増し。'),
+    'burry-asymmetric-contrarian':R('Pass','bearish',32,'low','No mispricing to exploit: the market already prices the obvious quality.','活用できるミスプライシングがなく、質の高さは既に織り込み済み。',
+      [{name:'Asymmetric payoff',status:'fail',note:'Upside and downside look balanced'}],['Clean balance sheet (assumed)'],['Consensus long'],['A forced seller appears'],['10-K footnotes'],'Do nothing; revisit only if a dislocation appears.','見送り。歪みが出たときのみ再検討。')};
+  return {example:true,sym:'EXAMPLE',row,news:[{title:T('Example headline: enter a ticker to load live news','サンプル見出し：ティッカーを入力するとライブニュースを表示'),source:'Example',date:null,url:null}],events:{earnings_date:null},order:Object.keys(results),results};
+}
+
+/* ===== Market data ===== */
+function normTicker(t){t=String(t||'').trim().toUpperCase().replace(/\s+/g,'');if(/^\d{4}$/.test(t))t+='.T';return t}
+function sma(vals,n){if(vals.length<n)return null;let s=0;for(let i=vals.length-n;i<vals.length;i++)s+=vals[i];return s/n}
+function derive(row){
+  const sp=(row.spark||[]).filter(p=>p.v!=null),vals=sp.map(p=>p.v),last=row.last??vals[vals.length-1];
+  const s50=sma(vals,50),s200=sma(vals,200),s50ago=vals.length>=70?sma(vals.slice(0,-20),50):null;
+  const prior55=vals.slice(-56,-1),prior20=vals.slice(-21,-1);
+  const r6=vals.length>126?(last/vals[vals.length-127]-1)*100:null;
+  const monthly=[];let lastM='';for(const p of sp){const m=p.d.slice(0,7);if(m!==lastM){monthly.push({...p});lastM=m}else monthly[monthly.length-1]={...p}}
+  return {sma50:s50,sma200:s200,last_vs_sma50_pct:s50?(last/s50-1)*100:null,last_vs_sma200_pct:s200?(last/s200-1)*100:null,
+    sma50_rising_over_20d:s50&&s50ago?s50>s50ago:null,golden_cross:s50&&s200?s50>s200:null,
+    new_20d_high:prior20.length?last>Math.max(...prior20):null,new_55d_high:prior55.length?last>Math.max(...prior55):null,
+    return_6m_pct:r6,monthly_closes:monthly.slice(-13).map(p=>({month:p.d.slice(0,7),close:+(+p.v).toPrecision(6)}))};
+}
+const r2=v=>v==null||!isFinite(v)?null:Math.round(v*100)/100;
+function factsFor(v){
+  const r=v.row||{},d=derive(r);
+  return {ticker:v.sym,name:r.name||null,currency:r.currency||null,as_of:r.asof||null,last_price:r2(r.last),
+    market_cap:r.market_cap??null,pe_trailing:r2(r.pe),pe_forward:r2(r.fwd_pe),ev_to_ebitda:r2(r.ev_ebitda),
+    operating_margin_pct:r.op_margin!=null?r2(r.op_margin*100):null,revenue_growth_yoy_pct:r.rev_growth!=null?r2(r.rev_growth*100):null,
+    return_on_equity_pct:r.roe!=null?r2(r.roe*100):null,dividend_yield_pct:r2(r.div_yield),
+    returns_pct:{d1:r2(r.chg_1d),w1:r2(r.chg_1w),m1:r2(r.chg_1m),m3:r2(r.chg_3m),m6:r2(d.return_6m_pct),ytd:r2(r.chg_ytd),y1:r2(r.chg_1y)},
+    realised_vol_pct:{d20:r2(r.vol_20d),d60:r2(r.vol_60d),y1:r2(r.vol_1y)},
+    range_52w:{high:r2(r.high_52w),low:r2(r.low_52w),position_pct:r2(r.pos_52w)},max_drawdown_1y_pct:r2(r.max_dd_1y),
+    trend:{sma50:r2(d.sma50),sma200:r2(d.sma200),last_vs_sma50_pct:r2(d.last_vs_sma50_pct),last_vs_sma200_pct:r2(d.last_vs_sma200_pct),
+      sma50_rising:d.sma50_rising_over_20d,sma50_above_sma200:d.golden_cross,new_20d_high:d.new_20d_high,new_55d_high:d.new_55d_high},
+    monthly_closes:d.monthly_closes,next_earnings:v.events?.earnings_date||null,last_ex_dividend:v.events?.ex_dividend_date||null,
+    recent_headlines:(v.news||[]).slice(0,6).map(n=>n.title)};
+}
+async function loadMarket(sym){
+  const [c,b]=await Promise.all([keel('api_comps',{symbols:sym}),keel('api_brief',{symbols:sym,days:1})]);
+  let row=c.ok?(c.data.rows||[])[0]:null;
+  const bi=b.ok?(b.data.items||[])[0]:null;
+  if(!row&&bi&&!bi.error)row=bi;
+  if(row&&bi&&!row.spark)row.spark=bi.spark;
+  const ok=!!(row&&(row.last!=null||(row.spark||[]).length));
+  return {ok,row:ok?row:null,news:b.ok?(b.data.news||[]).filter(n=>!n.symbol||n.symbol===sym):[],events:b.ok?((b.data.events||[]).find(e=>e.symbol===sym)||{}):{},code:ok?null:(!c.ok?c.code:!b.ok?b.code:'no_rows'),message:c.message||b.message};
+}
+
+/* ===== Analysis ===== */
+function promptFor(sk,facts,hasData){
+  const inv=sk.invest.length>9000?sk.invest.slice(0,9000)+'\n…':sk.invest;
+  return `You are an analyst applying one legendary investor's documented framework to one security. Judge only by this framework's criteria and reasoning style, not by generic analysis.
+
+=== FRAMEWORK: ${sk.title} (${sk.investor}) ===
+${sk.skill}
+${inv?'--- investment schema ---\n'+inv:''}
+=== END FRAMEWORK ===
+
+=== SECURITY DATA ===
+${hasData?'Source: Keel / OpenBB free public data, may be delayed.\n'+JSON.stringify(facts):'No market data could be loaded for '+facts.ticker+'. Work from widely known public facts only and say clearly that no current numbers were available.'}
+=== END DATA ===
+
+Rules:
+- Take every number from the data above. Never invent figures, prices or ratios.
+- You may use widely known, stable facts about what the company or asset is and its competitive position; mark such points "(general knowledge)".
+- Filings, cash-flow detail, balance-sheet detail, management record, insider and fund holdings, volume and on-chain data are NOT provided. When the framework needs them, mark that criterion "unclear" and list it under missing.
+- If the security sits outside this framework's universe (a crypto token for a value investor, an equity for an on-chain analyst, a bond-only framework), set stance "out_of_scope", fit null, and explain in one sentence.
+- fit: 0-100, how well the security meets this framework's criteria on the available evidence. It is not a price target.
+- native_verdict: use the framework's own verdict vocabulary from its Output Format (for example "Watchlist", "Too Hard", "Short candidate").
+- stance: bullish = the framework would want to own or add; bearish = avoid or short; neutral = wait or watch.
+- This is educational analysis, not investment advice.
+${JA()?'- Write every text value in Japanese. Keep enum values (stance, status, confidence) in English, and keep tickers and proper names as they are.':''}
+
+Reply with only one JSON object in this shape:
+{"native_verdict":"...","stance":"bullish|neutral|bearish|out_of_scope","fit":0,"confidence":"low|medium|high","thesis":"one sentence in this investor's logic","criteria":[{"name":"criterion from the framework","status":"pass|fail|unclear","note":"short evidence"}],"likes":["..."],"concerns":["..."],"invalidation":["..."],"missing":["..."],"action":"one or two sentences: what this investor would do now"}
+Give 4-7 criteria and 1-3 items in each list.`;
+}
+function clean(d){
+  if(!d||typeof d!=='object')throw{code:'invalid_json'};
+  const arr=a=>Array.isArray(a)?a.map(x=>typeof x==='string'?x:JSON.stringify(x)).filter(Boolean).slice(0,6):[];
+  const st=['bullish','neutral','bearish','out_of_scope'].includes(d.stance)?d.stance:'neutral';
+  let fit=d.fit==null||st==='out_of_scope'?null:Math.max(0,Math.min(100,Math.round(+d.fit)));if(!isFinite(fit))fit=null;
+  return {native_verdict:String(d.native_verdict||'—').slice(0,60),stance:st,fit,confidence:['low','medium','high'].includes(d.confidence)?d.confidence:'low',
+    thesis:String(d.thesis||''),action:String(d.action||''),
+    criteria:Array.isArray(d.criteria)?d.criteria.slice(0,8).map(c=>({name:String(c?.name||''),status:['pass','fail','unclear'].includes(c?.status)?c.status:'unclear',note:String(c?.note||'')})):[],
+    likes:arr(d.likes),concerns:arr(d.concerns),invalidation:arr(d.invalidation),missing:arr(d.missing)};
+}
+
+async function run(){
+  const sym=normTicker($('#tick').value);if(!sym){$('#tick').focus();return}
+  $('#tick').value=sym;S.ticker=sym;save();
+  if(!S.sel.length){openPicker(true);return}
+  if(RUN)RUN.abort();
+  const ctl=new AbortController();RUN=ctl;
+  $('#go').disabled=true;$('#stop').hidden=false;
+  setStatus('busy');
+  const order=S.sel.slice();
+  VIEW={example:false,sym,row:null,news:[],events:{},order,results:Object.fromEntries(order.map(s=>[s,{state:'queued'}])),loading:true,lang:LANG};
+  renderAll();
+  const mk=await loadMarket(sym);
+  if(ctl.signal.aborted)return;
+  VIEW.loading=false;
+  if(mk.ok){VIEW.row=mk.row;VIEW.news=mk.news;VIEW.events=mk.events;LIVE=true;setStatus('live')}
+  else{LIVE=false;setStatus(mk.code==='no_mcp'?'sample':'err',mk.code==='no_rows'?'no_rows':mk.code,mk.message)}
+  VIEW.facts=factsFor(VIEW);VIEW.hasData=mk.ok;
+  renderAll();
+  const sample=await sampleReady();
+  if(!sample){order.forEach(s=>VIEW.results[s]={state:'error',code:'no_sample'});finish(ctl);return}
+  let i=0;const worker=async()=>{while(i<order.length&&!ctl.signal.aborted){const slug=order[i++];await analyse(slug,ctl)}};
+  await Promise.all([worker(),worker()]);
+  finish(ctl);
+}
+async function analyse(slug,ctl,fresh=false){
+  const sk=BY[slug],v=VIEW;if(!sk||!v)return;
+  v.results[slug]={state:'run'};renderCard(slug);renderCons();
+  try{
+    const sample=SAMPLE||await sampleReady();if(!sample)throw{code:'no_sample'};
+    const d=await sample.json(promptFor(sk,v.facts,v.hasData),{signal:ctl.signal,cache:fresh?{gcTime:600000,refresh:true}:{gcTime:600000}});
+    if(VIEW!==v)return;
+    v.results[slug]={state:'done',data:clean(d)};
+  }catch(e){
+    if(VIEW!==v)return;
+    const code=e?.code||'upstream_error';
+    v.results[slug]=code==='cancelled'?{state:'queued',stopped:true}:{state:'error',code};
+    if(['not_granted','sampling_disabled','not_declared','capability_disabled','rate_limited','session_expired'].includes(code)){ctl.abort();
+      Object.keys(v.results).forEach(k=>{if(v.results[k].state==='queued')v.results[k]={state:'error',code}})}
+  }
+  renderCard(slug);renderCons();
+}
+function finish(ctl){if(RUN===ctl)RUN=null;$('#go').disabled=false;$('#stop').hidden=true;renderAll()}
+function errMsg(code){switch(code){
+  case 'no_sample':case 'capability_disabled':case 'capability_removed':case 'not_declared':return T('The panel runs inside claude.ai, where this page can ask Claude.','分析はclaude.ai内でのみ実行できます。');
+  case 'not_granted':return T('Claude was not allowed for this page. Allow it from the page’s Permissions menu, then run again.','このページでClaudeが許可されていません。ページの権限メニューから許可して再実行してください。');
+  case 'sampling_disabled':return T('Claude is not available for this account.','このアカウントではClaudeを利用できません。');
+  case 'rate_limited':return T('Usage limit reached for now. Try a smaller panel later.','現在利用上限に達しています。時間をおいて少人数のパネルでお試しください。');
+  case 'session_expired':return T('Sign in to claude.ai again, then run.','claude.aiに再ログインしてから実行してください。');
+  case 'refused':return T('Claude declined this request.','Claudeがこの依頼を断りました。');
+  case 'invalid_json':case 'empty_completion':return T('The answer came back malformed.','回答の形式が不正でした。');
+  default:return T('The analysis did not complete.','分析が完了しませんでした。');}}
+
+/* ===== Rendering ===== */
+let STAT=null;
+function setStatus(state,code,message){
+  STAT=[state,code,message];const p=$('#status');p.className='pill '+state;
+  p.innerHTML='<i></i>'+(state==='live'?T('Live · Keel','ライブ · Keel'):state==='busy'?T('Loading…','読み込み中…'):state==='example'?T('Example','サンプル'):T('No market data','市場データなし'));
+  const b=$('#banner');
+  if(state==='live'||state==='busy'||state==='example'){b.hidden=true;return}
+  b.hidden=false;
+  const msg=code==='no_rows'?T(`Keel returned nothing for this ticker. Check the symbol (Tokyo stocks end in .T, crypto like BTC-USD). The panel works from general knowledge only.`,`このティッカーのデータがありません。表記を確認してください（東証は .T、暗号資産は BTC-USD）。パネルは一般知識のみで判断します。`):keelMsg(code,message)+' '+T('The panel works from general knowledge only.','パネルは一般知識のみで判断します。');
+  b.innerHTML=`<span><b>${T('No market data.','市場データなし。')}</b> ${esc(msg)}</span><button class="lnk" id="howBtn" type="button">${T('How to connect','接続方法')}</button>`;
+  $('#howBtn').onclick=()=>{const h=$('#how');h.hidden=!h.hidden};
+}
+function howHtml(){return `<b>${T('Connect live data (one time)','ライブデータの接続（初回のみ）')}</b><ol>
+<li>${T('Deploy the Keel repo on Render. It serves <code>keel-mcp</code>.','KeelリポジトリをRenderにデプロイ（<code>keel-mcp</code>）。')}</li>
+<li>${T('In claude.ai, Settings → Connectors → Add custom connector, named <code>keel</code>, URL: the <code>keel-mcp</code> address + <code>/mcp</code>.','claude.aiの設定 → コネクタ → カスタムコネクタを追加。名前<code>keel</code>、URLは<code>keel-mcp</code>のアドレス＋<code>/mcp</code>。')}</li>
+<li>${T('Reload this page and allow Keel and Claude when asked.','このページを再読み込みし、確認が出たらKeelとClaudeを許可します。')}</li></ol>`}
+
+function renderIdent(){
+  const v=VIEW,r=v.row||{};
+  $('#ident').innerHTML=`<h2>${esc(r.name||v.sym)}</h2><span class="sym">${esc(v.sym)}</span>${v.example?`<span class="ex">${T('Example data','サンプルデータ')}</span>`:''}<span class="m">${v.loading?T('Loading market data…','市場データを読み込み中…'):r.asof?T('Prices as of ','価格基準日 ')+fdate(r.asof):''}${r.currency?' · '+esc(r.currency):''}</span>`;
+}
+function renderKpis(){
+  const r=VIEW.row||{};
+  const k=(lab,val,sub)=>`<div class="kpi"><span class="lbl">${lab}</span><span class="v">${val}</span><span class="s">${sub||'&nbsp;'}</span></div>`;
+  $('#kpis').innerHTML=
+    k(T('Last','現在値'),px(r.last)+(r.currency?`<small>${esc(r.currency)}</small>`:''),`<span class="${cls(r.chg_1d)}">${pct(r.chg_1d,2)}</span> ${T('today','前日比')}`)+
+    k(T('1 year','1年'),`<span class="${cls(r.chg_1y)}">${pct(r.chg_1y)}</span>`,`YTD <span class="${cls(r.chg_ytd)}">${pct(r.chg_ytd)}</span>`)+
+    k(T('P/E','PER'),r.pe!=null?num(r.pe,1)+'<small>x</small>':'—',T('forward ','予想 ')+(r.fwd_pe!=null?num(r.fwd_pe,1)+'x':'—'))+
+    k('EV/EBITDA',r.ev_ebitda!=null?num(r.ev_ebitda,1)+'<small>x</small>':'—',T('market cap ','時価総額 ')+big(r.market_cap))+
+    k(T('Volatility 1M','ボラ 1M'),r.vol_20d!=null?num(r.vol_20d,1)+'<small>%</small>':'—',T('1 year ','1年 ')+(r.vol_1y!=null?num(r.vol_1y,1)+'%':'—'));
+}
+function renderPrice(){
+  const r=VIEW.row||{},sp=(r.spark||[]).filter(p=>p.v!=null);
+  const vals=sp.map(p=>p.v),ma=n=>sp.map((p,i)=>({x:+new Date(p.d+'T00:00:00'),y:i>=n-1?vals.slice(i-n+1,i+1).reduce((a,b)=>a+b,0)/n:null}));
+  const ser=[{name:VIEW.sym,color:cssv('--ink'),pts:sp.map(p=>({x:+new Date(p.d+'T00:00:00'),y:p.v})),area:true,end:true,width:1.7},
+    {name:T('50-day','50日線'),color:cssv('--steel'),pts:ma(50),width:1.3},{name:T('200-day','200日線'),color:cssv('--red'),pts:ma(200),dash:true,width:1.3}];
+  lineChart($('#px'),ser,{h:250});legend($('#pxLeg'),ser);
+}
+function renderFund(){
+  const r=VIEW.row||{},d=derive(r),ev=VIEW.events||{};
+  const row=(a,b)=>`<tr><td>${a}</td><td>${b}</td></tr>`;
+  $('#fundSub').textContent=T('What the value and growth investors start from.','バリュー・グロース系の投資家の出発点。');
+  $('#fund').innerHTML='<tbody>'+
+    row(T('Operating margin','営業利益率'),r.op_margin!=null?pct(r.op_margin*100,1,false):'—')+
+    row(T('Revenue growth, yoy','売上成長率（前年比）'),r.rev_growth!=null?`<span class="${cls(r.rev_growth)}">${pct(r.rev_growth*100)}</span>`:'—')+
+    row(T('Return on equity','ROE'),r.roe!=null?pct(r.roe*100,1,false):'—')+
+    row(T('Dividend yield','配当利回り'),r.div_yield!=null?pct(r.div_yield,2,false):'—')+
+    row(T('vs 200-day average','200日線比'),`<span class="${cls(d.last_vs_sma200_pct)}">${pct(d.last_vs_sma200_pct)}</span>`)+
+    row(T('Worst fall, 1 year','1年最大下落'),`<span class="dn">${pct(r.max_dd_1y)}</span>`)+
+    row(T('52-week range','52週レンジ'),r.low_52w!=null?`<span class="rng" title="${px(r.low_52w)} – ${px(r.high_52w)}"><b style="left:calc(${Math.max(0,Math.min(100,r.pos_52w??50))}% - 1px)"></b></span> ${px(r.low_52w)}–${px(r.high_52w)}`:'—')+
+    row(T('Next results','次回決算'),ev.earnings_date?fdate(ev.earnings_date):'—')+'</tbody>';
+}
+const STL={bullish:['Bullish','強気'],neutral:['Wait','様子見'],bearish:['Bearish','弱気'],out_of_scope:['Out of scope','対象外']};
+const stl=s=>T(...(STL[s]||STL.neutral));
+function renderCons(){
+  const v=VIEW,res=v.order.map(s=>[s,v.results[s]]),done=res.filter(([,r])=>r.state==='done');
+  const cnt={bullish:0,neutral:0,bearish:0,out_of_scope:0};done.forEach(([,r])=>cnt[r.data.stance]++);
+  const fits=done.map(([,r])=>r.data.fit).filter(f=>f!=null);
+  const avg=fits.length?Math.round(fits.reduce((a,b)=>a+b,0)/fits.length):null;
+  $('#avg').innerHTML=avg==null?`<span style="color:var(--mute)">—</span><small>${T('average fit','平均適合度')}</small>`:`${avg}<small>${T('average fit across ','平均適合度・')}${fits.length}${T(' investors','人')}</small>`;
+  const n=v.order.length||1;
+  $('#tally').innerHTML=[['bullish','bull'],['neutral','neut'],['bearish','bear'],['out_of_scope','oos']].map(([k,c])=>cnt[k]?`<i class="${c}" style="width:${cnt[k]/n*100}%"></i>`:'').join('');
+  $('#tleg').innerHTML=[['bullish','bull'],['neutral','neut'],['bearish','bear'],['out_of_scope','oos']].map(([k,c])=>`<span><i class="sw ${c}"></i>${stl(k)} <b>${cnt[k]}</b></span>`).join('');
+  const running=res.filter(([,r])=>r.state==='run'||r.state==='queued').length;
+  $('#prog').textContent=v.example?T('Example panel. Enter a ticker to run your own.','サンプルのパネルです。ティッカーを入力して実行してください。'):running&&RUN?T(`${done.length} of ${n} done`,`${n}人中${done.length}人完了`):'';
+  renderStrip(done);
+}
+function renderStrip(done){
+  const svg=$('#strip'),w=Wd(svg),m={l:10,r:10},rowH=22;
+  const items=done.filter(([,r])=>r.data.fit!=null).map(([s,r])=>({s,f:r.data.fit,st:r.data.stance})).sort((a,b)=>a.f-b.f);
+  const X=f=>m.l+f/100*(w-m.l-m.r);
+  /* stack labels into lanes so names never overlap */
+  const lanes=[];items.forEach(it=>{const lw=shortName(BY[it.s]).length*6.2+14,x=X(it.f);let L=0;while(lanes[L]!=null&&lanes[L]>x-4)L++;lanes[L]=x+lw;it.lane=L});
+  const nL=Math.max(1,lanes.length),axisY=nL*rowH+18,h=axisY+28;
+  const col=st=>cssv(st==='bullish'?'--pos':st==='bearish'?'--neg':'--gold');
+  let g='';
+  [0,25,50,75,100].forEach(t=>g+=`<line class="grd" x1="${X(t)}" x2="${X(t)}" y1="4" y2="${axisY}"/><text x="${X(t)}" y="${axisY+16}" text-anchor="${t===0?'start':t===100?'end':'middle'}">${t}</text>`);
+  g+=`<line class="ax" x1="${m.l}" x2="${w-m.r}" y1="${axisY}" y2="${axisY}"/>`;
+  items.forEach(it=>{const x=X(it.f),y=it.lane*rowH+14,c=col(it.st);
+    g+=`<line x1="${x}" x2="${x}" y1="${y}" y2="${axisY}" stroke="${c}" stroke-opacity=".35" stroke-width="1"/><circle cx="${x}" cy="${y}" r="4.5" fill="${c}"/><text x="${x+8}" y="${y+4}" style="fill:var(--ink)">${esc(shortName(BY[it.s]))}</text>`});
+  if(!items.length)g+=`<text x="${w/2}" y="${axisY/2+4}" text-anchor="middle">${RUN?T('Scores appear as each investor finishes.','各投資家の分析が終わると表示されます。'):T('No scores yet.','まだスコアはありません。')}</text>`;
+  svg.setAttribute('viewBox',`0 0 ${w} ${h}`);svg.setAttribute('height',h);svg.innerHTML=g;
+}
+function cardHtml(slug){
+  const sk=BY[slug],r=VIEW.results[slug]||{state:'queued'},d=r.data;
+  const head=st=>`<div class="ch1"><div class="who"><h3>${esc(sk.investor)}</h3><div class="mdl">${esc(sk.title)}</div></div>${st}</div>`;
+  const foot=`<div class="cfoot">${!VIEW.example&&r.state!=='run'&&!RUN?`<button class="lnk" type="button" data-again="${slug}">${T('Ask again','再分析')}</button>`:''}<a class="lnk" href="${ghUrl(slug)}" target="_blank" rel="noopener">${T('The playbook','手法の原文')}</a></div>`;
+  if(r.state==='queued'||r.state==='run')return head(`<span class="st ${r.state==='run'?'run':''}"><i></i>${r.state==='run'?T('Thinking…','分析中…'):r.stopped?T('Stopped','停止'):T('Queued','待機中')}</span>`)+`<p class="wait">${esc(sk.model)}</p>`;
+  if(r.state==='error')return head(`<span class="st"><i style="background:var(--neg)"></i>${T('Not run','未実行')}</span>`)+`<p class="err">${esc(errMsg(r.code))}</p>`+foot;
+  const li=(t,a)=>a.length?`<h4>${t}</h4><ul>${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'';
+  const cf={low:T('low confidence','確信度 低'),medium:T('medium confidence','確信度 中'),high:T('high confidence','確信度 高')}[d.confidence];
+  return head(`<span class="st ${d.stance}"><i></i>${stl(d.stance)}</span>`)+
+    `<div class="verd"><span class="nv">${esc(d.native_verdict)}</span><span class="cf">${cf}</span></div>`+
+    (d.fit!=null?`<div class="fit"><span>${T('Fit','適合度')}</span><span class="tr"><b style="width:${d.fit}%"></b></span><span class="n">${d.fit}</span></div>`:'')+
+    `<p class="thesis">${esc(d.thesis)}</p>`+(d.action?`<p class="act">${esc(d.action)}</p>`:'')+
+    `<details><summary>${T('Checklist and reasoning','チェックリストと根拠')}</summary>`+
+    `<div style="margin-top:6px">${d.criteria.map(c=>`<div class="crit"><span class="g ${c.status}">${c.status==='pass'?'✓':c.status==='fail'?'✕':'?'}</span><span>${esc(c.name)}</span>${c.note?`<small>${esc(c.note)}</small>`:''}</div>`).join('')}</div>`+
+    `<div class="lst">${li(T('Likes','評価点'),d.likes)}${li(T('Concerns','懸念'),d.concerns)}${li(T('Would change the view','見解が変わる条件'),d.invalidation)}${li(T('Data it wanted','不足データ'),d.missing)}</div></details>`+foot;
+}
+function renderCard(slug){const el=$(`.card[data-s="${slug}"]`);if(el){const open=el.querySelector('details')?.open;el.innerHTML=cardHtml(slug);if(open){const dd=el.querySelector('details');if(dd)dd.open=true}}}
+function renderCards(){
+  $('#cards').innerHTML=VIEW.order.map(s=>`<article class="card" data-s="${s}">${cardHtml(s)}</article>`).join('');
+}
+$('#cards').addEventListener('click',e=>{const b=e.target.closest('[data-again]');if(!b||RUN)return;
+  const ctl=new AbortController();RUN=ctl;$('#go').disabled=true;$('#stop').hidden=false;
+  analyse(b.dataset.again,ctl,true).then(()=>finish(ctl))});
+function renderNews(){
+  $('#news').innerHTML=(VIEW.news||[]).slice(0,8).map(n=>`<div class="nw">${n.url?`<a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.title)}</a>`:`<span class="t">${esc(n.title)}</span>`}<small>${esc(n.source||'')}${n.date?' · '+fdate(String(n.date).slice(0,10),{day:'numeric',month:'short'}):''}</small></div>`).join('')||`<p class="empty">${VIEW.loading?T('Loading…','読み込み中…'):T('No headlines.','見出しなし。')}</p>`;
+  $('#howtxt').innerHTML=T(`Keel supplies the price history, valuation and headlines. Each investor's documented playbook (${SK.length} of them, from the open-source <a class="lnk" href="https://github.com/questflowai/investorskills" target="_blank" rel="noopener">Investor Skills</a> library) goes to Claude with those numbers, and Claude scores the stock against that playbook alone. Filings, cash flows and volume are not included, so criteria that need them show as “?”. Each investor uses some of your Claude usage; answers are reused for 10 minutes.`,
+    `価格推移・バリュエーション・見出しはKeelから取得。各投資家の手法（オープンソースの<a class="lnk" href="https://github.com/questflowai/investorskills" target="_blank" rel="noopener">Investor Skills</a>、${SK.length}人分）を数値とともにClaudeに渡し、その手法の基準だけで評価します。決算書・キャッシュフロー・出来高は含まれないため、それらが必要な項目は「?」と表示されます。1人ごとにClaudeの利用枠を使い、回答は10分間再利用されます。`);
+}
+function renderAll(){if(!VIEW)return;renderIdent();renderKpis();renderPrice();renderFund();renderCards();renderCons();renderNews()}
+
+/* ===== Panel picker ===== */
+function renderPanels(){
+  $('#panels').innerHTML=PANELS.map(p=>`<button type="button" data-k="${p.k}" class="${S.panel===p.k?'on':''}">${JA()?p.ja:p.en}</button>`).join('')+`<button type="button" data-k="custom" class="${S.panel==='custom'?'on':''}">${T('Custom','カスタム')}</button>`;
+  $$('#panels button').forEach(b=>b.onclick=()=>{if(b.dataset.k==='custom'){S.panel='custom';save();renderPanels();openPicker(true);return}
+    const p=PANELS.find(x=>x.k===b.dataset.k);S.panel=p.k;S.sel=p.s.filter(x=>BY[x]);save();renderPanels();renderPicker()});
+  $('#selline').innerHTML=S.sel.length?`<b>${S.sel.length}</b> · `+S.sel.map(s=>esc(shortName(BY[s]))).join(', '):T('No investors chosen.','投資家が未選択です。');
+  $('#pickBtn').textContent=$('#picker').hidden?T(`Choose from all ${SK.length}`,`全${SK.length}人から選ぶ`):T('Close list','一覧を閉じる');
+}
+function renderPicker(){
+  const p=$('#picker');if(p.hidden)return;
+  const full=S.sel.length>=MAXSEL;
+  p.innerHTML=`<div class="ph"><span class="lbl">${T(`Up to ${MAXSEL} at a time. ${S.sel.length} chosen.`,`最大${MAXSEL}人まで。選択中 ${S.sel.length}人。`)}</span><button class="lnk" type="button" id="clr">${T('Clear all','すべて解除')}</button></div><div class="pcols">`+
+    CATS.map(c=>{const list=SK.filter(s=>s.cat===c.k);if(!list.length)return'';
+      return `<div class="pcat"><h3>${JA()?c.ja:c.en}</h3>${list.map(s=>{const on=S.sel.includes(s.slug),dis=!on&&full;
+        return `<label class="${dis?'dis':''}"><input type="checkbox" id="pk-${s.slug}" data-s="${s.slug}" ${on?'checked':''} ${dis?'disabled':''}><span>${esc(s.investor)}<small>${esc(s.model)}</small></span></label>`}).join('')}</div>`}).join('')+'</div>';
+  $('#clr').onclick=()=>{S.sel=[];S.panel='custom';save();renderPanels();renderPicker()};
+  $$('#picker input').forEach(i=>i.onchange=()=>{const s=i.dataset.s;S.sel=i.checked?[...S.sel,s].slice(0,MAXSEL):S.sel.filter(x=>x!==s);S.panel='custom';save();renderPanels();renderPicker()});
+}
+function openPicker(force){const p=$('#picker');p.hidden=force?false:!p.hidden;renderPanels();renderPicker()}
+$('#pickBtn').onclick=()=>openPicker(false);
+
+/* ===== Copy as text ===== */
+function asText(){
+  const v=VIEW,r=v.row||{},L=[];
+  L.push(`${T('Legends panel','レジェンド・パネル')} — ${v.sym}${r.name?' ('+r.name+')':''} — ${new Date().toISOString().slice(0,10)}${v.example?' (EXAMPLE)':''}`);
+  if(r.last!=null)L.push(`${T('Last','現在値')} ${px(r.last)} ${r.currency||''} | 1Y ${pct(r.chg_1y)} | P/E ${r.pe!=null?num(r.pe,1):'—'} | ${T('fwd','予想')} ${r.fwd_pe!=null?num(r.fwd_pe,1):'—'}`);
+  L.push('');
+  v.order.forEach(s=>{const x=v.results[s];if(x?.state!=='done')return;const d=x.data;
+    L.push(`${BY[s].investor}: ${d.native_verdict} (${stl(d.stance)}${d.fit!=null?', '+T('fit ','適合度 ')+d.fit:''})`);L.push('  '+d.thesis);if(d.action)L.push('  → '+d.action)});
+  L.push('',T('Educational analysis, not investment advice.','教育目的の分析であり、投資助言ではありません。'));
+  return L.join('\n');
+}
+$('#copy').onclick=async()=>{const el=$('#copied');try{await navigator.clipboard.writeText(asText());el.textContent=T('Copied','コピーしました')}catch(e){el.textContent=T('Copy blocked here.','この画面ではコピーできません。')}el.hidden=false;setTimeout(()=>el.hidden=true,2500)};
+
+/* ===== Wiring ===== */
+$('#quick').innerHTML=QUICK.map(q=>`<button type="button" data-q="${q}">${q}</button>`).join('');
+$$('#quick button').forEach(b=>b.onclick=()=>{$('#tick').value=b.dataset.q;run()});
+$('#tf').onsubmit=e=>{e.preventDefault();run()};
+$('#stop').onclick=()=>{if(RUN){RUN.abort();const ctl=RUN;finish(ctl)}};
+$$('#langSeg button').forEach(b=>b.onclick=()=>{setLang(b.dataset.l);$('#how').innerHTML=howHtml();if(STAT)setStatus(...STAT);
+  if(VIEW&&VIEW.example)VIEW=exampleView();renderPanels();renderPicker();renderAll()});
+let RZ;addEventListener('resize',()=>{clearTimeout(RZ);RZ=setTimeout(()=>{if(VIEW){renderPrice();renderCons()}},150)});
+bindTheme();setLang(LANG);$('#how').innerHTML=howHtml();
+$('#tick').value=S.ticker||'';
+VIEW=exampleView();setStatus('example');renderPanels();renderAll();
+mcpReady();
+</script>
